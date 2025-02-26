@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import '@rainbow-me/rainbowkit/styles.css'; // Import RainbowKit styles
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
-import { polygon } from 'wagmi/chains';
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { RainbowKitProvider, lightTheme } from '@rainbow-me/rainbowkit';
+
+// Importing additional chains
+import { polygon, mainnet, optimism, arbitrum, bsc } from 'wagmi/chains';
 
 const App = ({ children }) => {
   const [config, setConfig] = useState(null);
@@ -15,7 +17,7 @@ const App = ({ children }) => {
     const rainbowConfig = getDefaultConfig({
       appName: 'LittleBaoTinkers',
       projectId: '08de32a19b392b8abbc7ad0eef0fe4ca', // Replace with your actual WalletConnect ID
-      chains: [polygon], // Only using Polygon
+      chains: [mainnet, polygon, optimism, arbitrum, bsc], // Added more chains
       ssr: true,
     });
     setConfig(rainbowConfig);

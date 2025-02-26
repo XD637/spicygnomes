@@ -41,9 +41,10 @@ const Navbar = () => {
           <Link href="/" className="block hover:text-gray-400" onClick={() => setIsOpen(false)}>Home</Link>
           <Link href="/mint" className="block hover:text-gray-400" onClick={() => setIsOpen(false)}>Mint</Link>
           <Link href="/about" className="block hover:text-gray-400" onClick={() => setIsOpen(false)}>About</Link>
-          <div className="mt-4">
-            <ConnectWallet />
-          </div>
+          <div className="mt-4 flex justify-center">
+  <ConnectWallet />
+</div>
+
         </div>
       )}
     </nav>

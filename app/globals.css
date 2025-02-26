@@ -2,22 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import the custom Bao font */
+@font-face {
+  font-family: "Bao";
+  src: url("/fonts/bao.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
 :root {
+  --primary: #abcadf;
+  --primary-text: #1a1a1a;
+  --secondary: #abcadf;
+  --secondary-text: #ffffff;
+  --accent: #505050;
+  --accent-text: #ffffff;
+
   --background: #ffffff;
   --foreground: #171717;
+
+  --border: #cccccc;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --hover: #90b2c9;
+  --disabled: #d3d3d3;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --border: #505050;
+    --shadow: rgba(0, 0, 0, 0.5);
   }
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Bao", Arial, Helvetica, sans-serif;
   
   /* Add looping background */
   background-image: url("/images/bg-loop.jpg_medium");
