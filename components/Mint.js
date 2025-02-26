@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BrowserProvider, Contract, parseEther, toBigInt } from "ethers";
 import { fetchBalances } from "../utils/fetchBalances";
-import { ImSpinner2 } from "react-icons/im";
+import contractABI from "../contracts/abi/spicygnomes.json";
+
+const CONTRACT_ADDRESS = "0xb0a6C7C6B4371E83A9919da431de6bAB4f7150b1"; // Replace with your contract address
 
 const PRICES = {
-  spice: 10, // Example price per NFT in $SPICE
-  wspice: 5,  // Example price per NFT in $WSPICE
-  pol: 2,    // Example price per NFT in $POL
+  spice: 490000, // Example price per NFT in $SPICE
+  wspice: 1000,  // Example price per NFT in $WSPICE
+  pol: 100,      // Example price per NFT in $POL
 };
 
 export default function Mint() {
@@ -45,9 +48,34 @@ export default function Mint() {
     }
   }, []);
 
-  const handleMint = (currency) => {
-    console.log(`Minting ${mintAmount} NFT(s) using ${currency}`);
-    // Call the smart contract mint function here
+  const handleMint = async (currency) => {
+    if (!window.ethereum || !walletAddress) {
+      alert("Wallet not connected!");
+      return;
+    }
+
+    try {
+      const provider = new BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new Contract(CONTRACT_ADDRESS, contractABI, signer);
+      let tx;
+      const mintAmountBigInt = toBigInt(mintAmount);
+
+      if (currency === "spice") {
+        tx = await contract.mintSpice(mintAmountBigInt);
+      } else if (currency === "wspice") {
+        tx = await contract.mintWspice(mintAmountBigInt);
+      } else if (currency === "pol") {
+        const price = parseEther((mintAmount * PRICES.pol).toString());
+        tx = await contract.mintPol(mintAmountBigInt, { value: price });
+      }
+
+      await tx.wait();
+      alert("Mint successful!");
+    } catch (error) {
+      console.error("Minting error:", error);
+      alert(`Minting failed! ${error.message}`);
+    }
   };
 
   return (

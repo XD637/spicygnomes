@@ -1,5 +1,8 @@
 import Image from "next/image";
-import Mint from "../components/Mint";
+import dynamic from "next/dynamic";
+
+const Mint = dynamic(() => import("../components/Mint"));
+
 
 export default function Home() {
   return (
