@@ -1,15 +1,30 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import ConnectWallet from "../components/ConnectWallet";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <nav className="bg-background text-foreground shadow-md w-full">
-      <div className="flex justify-between items-center h-20 px-4 md:px-8 lg:px-12 relative">
+    <nav
+      className={`fixed top-0 left-0 w-full transition-all duration-300 ease-in-out z-50 ${
+        isScrolled ? "bg-background/80 shadow-lg backdrop-blur-md h-16" : "bg-background shadow-md h-20"
+      }`}
+    >
+      <div className="flex justify-between items-center px-4 md:px-8 lg:px-12 relative h-full">
         {/* Logo - left-aligned */}
         <div className="text-2xl font-bold tracking-wide flex-1">
           <Link href="/">SpicyGnomes</Link>
@@ -42,9 +57,8 @@ const Navbar = () => {
           <Link href="/mint" className="block hover:text-gray-400" onClick={() => setIsOpen(false)}>Mint</Link>
           <Link href="/about" className="block hover:text-gray-400" onClick={() => setIsOpen(false)}>About</Link>
           <div className="mt-4 flex justify-center">
-  <ConnectWallet />
-</div>
-
+            <ConnectWallet />
+          </div>
         </div>
       )}
     </nav>
