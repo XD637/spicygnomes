@@ -16,7 +16,7 @@ export default function Home() {
         className="w-[80vw] max-w-[500px] h-auto filter-none" 
       />
       <Image 
-        src="/images/mint-nft.jpg_medium" 
+        src="/images/mint-nft.jpg" 
         alt="Mint NFT" 
         width={200} 
         height={200} 
