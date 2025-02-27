@@ -96,7 +96,7 @@ export default function Mint() {
 
         tx = await contract[currency === "spice" ? "mintSpice" : "mintWspice"](mintAmountBigInt);
       } else if (currency === "pol") {
-        const price = parseEther((mintAmount * Number(PRICES.pol)).toString());
+        const price = parseEther((mintAmount * Number(PRICES.pol)).toFixed(18));
         tx = await contract.mintPol(mintAmountBigInt, { value: price });
       }
 
