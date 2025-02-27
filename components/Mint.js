@@ -1,52 +1,75 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BrowserProvider, Contract, parseEther, toBigInt } from "ethers";
-import { fetchBalances } from "../utils/fetchBalances";
+import { BrowserProvider, Contract, parseEther, toBigInt, formatUnits } from "ethers";
 import contractABI from "../contracts/abi/spicygnomes.json";
 
-const CONTRACT_ADDRESS = "0xb0a6C7C6B4371E83A9919da431de6bAB4f7150b1"; // Replace with your contract address
+const CONTRACT_ADDRESS = "0xb0a6C7C6B4371E83A9919da431de6bAB4f7150b1";
+const TOKEN_ADDRESSES = {
+  spice: "0x525d430da682ea490423ff98B0222d17bBFf34Bb",
+  wspice: "0x2f66CD5E4A7157827457A4310Ef413BbBb4896Fc",
+};
+
+const ERC20_ABI = [
+  "function balanceOf(address owner) public view returns (uint256)",
+  "function approve(address spender, uint256 amount) public returns (bool)",
+  "function allowance(address owner, address spender) public view returns (uint256)",
+];
 
 const PRICES = {
-  spice: 490000, // Example price per NFT in $SPICE
-  wspice: 1000,  // Example price per NFT in $WSPICE
-  pol: 100,      // Example price per NFT in $POL
+  spice: 1000,
+  wspice: 1000,
+  pol: 5,
 };
 
 export default function Mint() {
-  const [balances, setBalances] = useState(null);
+  const [balances, setBalances] = useState({ spice: 0, wspice: 0, pol: 0 });
   const [walletAddress, setWalletAddress] = useState(null);
   const [loading, setLoading] = useState(false);
   const [mintAmount, setMintAmount] = useState(1);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.ethereum) {
-      window.ethereum.request({ method: "eth_accounts" }).then((accounts) => {
+      window.ethereum.request({ method: "eth_accounts" }).then(async (accounts) => {
         if (accounts.length > 0) {
           setWalletAddress(accounts[0]);
           setLoading(true);
-          fetchBalances(accounts[0], (data) => {
-            setBalances(data);
-            setLoading(false);
-          });
+          await fetchBalances(accounts[0]);
+          setLoading(false);
         }
       });
 
-      window.ethereum.on("accountsChanged", (accounts) => {
+      window.ethereum.on("accountsChanged", async (accounts) => {
         if (accounts.length === 0) {
           setWalletAddress(null);
-          setBalances(null);
+          setBalances({ spice: 0, wspice: 0, pol: 0 });
         } else {
           setWalletAddress(accounts[0]);
           setLoading(true);
-          fetchBalances(accounts[0], (data) => {
-            setBalances(data);
-            setLoading(false);
-          });
+          await fetchBalances(accounts[0]);
+          setLoading(false);
         }
       });
     }
   }, []);
+
+  const fetchBalances = async (address) => {
+    try {
+      const provider = new BrowserProvider(window.ethereum);
+      const spiceContract = new Contract(TOKEN_ADDRESSES.spice, ERC20_ABI, provider);
+      const wspiceContract = new Contract(TOKEN_ADDRESSES.wspice, ERC20_ABI, provider);
+      const spiceBalance = await spiceContract.balanceOf(address);
+      const wspiceBalance = await wspiceContract.balanceOf(address);
+      const polBalance = await provider.getBalance(address);
+      setBalances({
+        spice: Number(formatUnits(spiceBalance, 18)),
+        wspice: Number(formatUnits(wspiceBalance, 18)),
+        pol: Number(formatUnits(polBalance, 18)),
+      });
+    } catch (error) {
+      console.error("Error fetching balances:", error);
+    }
+  };
 
   const handleMint = async (currency) => {
     if (!window.ethereum || !walletAddress) {
@@ -58,13 +81,20 @@ export default function Mint() {
       const provider = new BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new Contract(CONTRACT_ADDRESS, contractABI, signer);
-      let tx;
       const mintAmountBigInt = toBigInt(mintAmount);
+      let tx;
 
-      if (currency === "spice") {
-        tx = await contract.mintSpice(mintAmountBigInt);
-      } else if (currency === "wspice") {
-        tx = await contract.mintWspice(mintAmountBigInt);
+      if (currency === "spice" || currency === "wspice") {
+        const tokenContract = new Contract(TOKEN_ADDRESSES[currency], ERC20_ABI, signer);
+        const requiredAmount = toBigInt(mintAmount * PRICES[currency]);
+
+        const allowance = await tokenContract.allowance(walletAddress, CONTRACT_ADDRESS);
+        if (allowance < requiredAmount) {
+          tx = await tokenContract.approve(CONTRACT_ADDRESS, requiredAmount);
+          await tx.wait();
+        }
+
+        tx = await contract[currency === "spice" ? "mintSpice" : "mintWspice"](mintAmountBigInt);
       } else if (currency === "pol") {
         const price = parseEther((mintAmount * PRICES.pol).toString());
         tx = await contract.mintPol(mintAmountBigInt, { value: price });
@@ -72,6 +102,7 @@ export default function Mint() {
 
       await tx.wait();
       alert("Mint successful!");
+      await fetchBalances(walletAddress);
     } catch (error) {
       console.error("Minting error:", error);
       alert(`Minting failed! ${error.message}`);
@@ -100,32 +131,15 @@ export default function Mint() {
                 <div>
                   <p className="text-md font-semibold uppercase">${currency.toUpperCase()}</p>
                   <p className="text-gray-800 text-sm">Price: {PRICES[currency]}</p>
-                  <p className="text-gray-600 text-xs">Balance: {balances?.[currency] || 0}</p>
+                  <p className="text-gray-600 text-xs">Balance: {balances[currency] || 0}</p>
                   <div className="flex items-center justify-center mt-3">
-                    <button
-                      className="px-3 py-1 bg-gray-200 rounded-lg text-lg"
-                      onClick={() => setMintAmount((prev) => Math.max(1, prev - 1))}
-                    >
-                      -
-                    </button>
+                    <button className="px-3 py-1 bg-gray-200 rounded-lg text-lg" onClick={() => setMintAmount((prev) => Math.max(1, prev - 1))}>-</button>
                     <span className="mx-4 text-lg font-bold w-8 text-center">{mintAmount}</span>
-                    <button
-                      className="px-3 py-1 bg-gray-200 rounded-lg text-lg"
-                      onClick={() => setMintAmount((prev) => prev + 1)}
-                    >
-                      +
-                    </button>
+                    <button className="px-3 py-1 bg-gray-200 rounded-lg text-lg" onClick={() => setMintAmount((prev) => prev + 1)}>+</button>
                   </div>
-                  <p className="mt-2 text-sm text-gray-700 min-h-[24px]">
-                    Total: {mintAmount * PRICES[currency]} {currency.toUpperCase()}
-                  </p>
+                  <p className="mt-2 text-sm text-gray-700 min-h-[24px]">Total: {mintAmount * PRICES[currency]} {currency.toUpperCase()}</p>
                 </div>
-                <button
-                  className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-xl w-full hover:bg-blue-600"
-                  onClick={() => handleMint(currency)}
-                >
-                  Mint
-                </button>
+                <button className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-xl w-full hover:bg-blue-600" onClick={() => handleMint(currency)}>Mint</button>
               </div>
             ))}
           </div>
