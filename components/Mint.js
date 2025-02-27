@@ -17,9 +17,9 @@ const ERC20_ABI = [
 ];
 
 const PRICES = {
-  spice: 1000,
-  wspice: 1000,
-  pol: 5,
+  spice: 1000n,
+  wspice: 1000n,
+  pol: 5n,
 };
 
 export default function Mint() {
@@ -86,7 +86,7 @@ export default function Mint() {
 
       if (currency === "spice" || currency === "wspice") {
         const tokenContract = new Contract(TOKEN_ADDRESSES[currency], ERC20_ABI, signer);
-        const requiredAmount = toBigInt(mintAmount * PRICES[currency]);
+        const requiredAmount = mintAmountBigInt * PRICES[currency] * 10n ** 18n;
 
         const allowance = await tokenContract.allowance(walletAddress, CONTRACT_ADDRESS);
         if (allowance < requiredAmount) {
@@ -96,7 +96,7 @@ export default function Mint() {
 
         tx = await contract[currency === "spice" ? "mintSpice" : "mintWspice"](mintAmountBigInt);
       } else if (currency === "pol") {
-        const price = parseEther((mintAmount * PRICES.pol).toString());
+        const price = parseEther((mintAmount * Number(PRICES.pol)).toString());
         tx = await contract.mintPol(mintAmountBigInt, { value: price });
       }
 
@@ -130,14 +130,14 @@ export default function Mint() {
               >
                 <div>
                   <p className="text-md font-semibold uppercase">${currency.toUpperCase()}</p>
-                  <p className="text-gray-800 text-sm">Price: {PRICES[currency]}</p>
+                  <p className="text-gray-800 text-sm">Price: {Number(PRICES[currency])}</p>
                   <p className="text-gray-600 text-xs">Balance: {balances[currency] || 0}</p>
                   <div className="flex items-center justify-center mt-3">
                     <button className="px-3 py-1 bg-gray-200 rounded-lg text-lg" onClick={() => setMintAmount((prev) => Math.max(1, prev - 1))}>-</button>
                     <span className="mx-4 text-lg font-bold w-8 text-center">{mintAmount}</span>
                     <button className="px-3 py-1 bg-gray-200 rounded-lg text-lg" onClick={() => setMintAmount((prev) => prev + 1)}>+</button>
                   </div>
-                  <p className="mt-2 text-sm text-gray-700 min-h-[24px]">Total: {mintAmount * PRICES[currency]} {currency.toUpperCase()}</p>
+                  <p className="mt-2 text-sm text-gray-700 min-h-[24px]">Total: {mintAmount * Number(PRICES[currency])} {currency.toUpperCase()}</p>
                 </div>
                 <button className="mt-3 px-4 py-2 bg-blue-500 text-white rounded-xl w-full hover:bg-blue-600" onClick={() => handleMint(currency)}>Mint</button>
               </div>
