@@ -19,7 +19,7 @@ const ERC20_ABI = [
 const PRICES = {
   spice: 490000n,
   wspice: 1000n,
-  pol: 90n,
+  pol: 40n,
 };
 
 export default function Mint() {
