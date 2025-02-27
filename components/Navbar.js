@@ -33,8 +33,8 @@ const Navbar = () => {
         {/* Centered Desktop Links */}
         <div className="hidden md:flex space-x-20 absolute left-1/2 -translate-x-1/2">
           <Link href="/" className="hover:text-gray-400">Home</Link>
-          <Link href="/mint" className="hover:text-gray-400">Mint</Link>
-          <Link href="/about" className="hover:text-gray-400">About</Link>
+          <a href="https://mint.littlebaonft.com/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-400">Mint</a>
+          <a href="https://littlebaonft.com/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-400">About</a>
         </div>
 
         {/* Wallet Button - right-aligned */}
@@ -54,8 +54,8 @@ const Navbar = () => {
       {isOpen && (
         <div className="md:hidden bg-background py-4 space-y-4 text-center">
           <Link href="/" className="block hover:text-gray-400" onClick={() => setIsOpen(false)}>Home</Link>
-          <Link href="/mint" className="block hover:text-gray-400" onClick={() => setIsOpen(false)}>Mint</Link>
-          <Link href="/about" className="block hover:text-gray-400" onClick={() => setIsOpen(false)}>About</Link>
+          <a href="https://mint.littlebaonft.com/" target="_blank" rel="noopener noreferrer" className="block hover:text-gray-400" onClick={() => setIsOpen(false)}>Mint</a>
+          <a href="https://littlebaonft.com/" target="_blank" rel="noopener noreferrer" className="block hover:text-gray-400" onClick={() => setIsOpen(false)}>About</a>
           <div className="mt-4 flex justify-center">
             <ConnectWallet />
           </div>
